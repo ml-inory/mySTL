@@ -1,3 +1,5 @@
+#define DEBUG	1
+
 #include "Vector.hpp"
 #include <stdio.h>
 
@@ -26,6 +28,19 @@ int main()
 	printf("insert:\n");
 	a.insert(0, 11);
 	print_vector(a);
+
+	printf("deduplicate:\n");
+	a.deduplicate();
+	print_vector(a);
+
+	printf("expand:\n");
+	int vec_size = a.size();
+	for (int i = 0; i < vec_size; i++)
+		a.push_back(1);
+
+	printf("shrink:\n");
+	while (!a.empty())
+		a.remove(0);
 
 	getchar();
     

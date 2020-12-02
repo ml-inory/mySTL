@@ -7,6 +7,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 // 默认容量
 #define DEFAULT_CAPACITY    8
@@ -46,7 +47,6 @@ public:
 		_expand_ratio(DEFAULT_RATIO),
 		_shrink_ratio(DEFAULT_RATIO)
 	{
-		_capacity *= 2;
 		assert(_capacity > 0);
 		assert(_size > 0);
 		_elem = new T[_capacity];
@@ -85,8 +85,8 @@ public:
 			delete _elem;
 	}
 
-// 只读访问接口
-	// 获取容量
+	// 只读访问接口
+		// 获取容量
 	inline int capacity() const
 	{
 		return _capacity;
@@ -108,6 +108,7 @@ public:
 	// 重载下标操作符
 	T& operator [] (Rank rank) const
 	{
+		assert(rank >= 0 && rank < _size);
 		return _elem[rank];
 	}
 
@@ -132,7 +133,7 @@ public:
 		assert(r >= 0 && r < _size);
 
 		T ret = _elem[r];
-		
+
 		// 拷贝元素
 		for (Rank i = r; i < _size; i++)
 		{
@@ -200,6 +201,60 @@ public:
 		return index;
 	}
 
+	// 随机置乱算法
+	void unsort(void)
+	{
+		for (Rank i = _size; i > 0; i--)
+		{
+			swap(i - 1, rand() % i);
+		}
+	}
+
+// 算法接口
+	// 顺序查找，区间在[lo, hi)
+	Rank find(const T& e, Rank lo, Rank hi) const
+	{
+		assert(lo >= 0 && hi < _size);
+		for (Rank i = hi - 1; i >= lo; i--)
+		{
+			if (_elem[i] == e)
+				return i;
+		}
+		return -1;
+	}
+
+	// 顺序查找，全局
+	Rank find(const T& e) const
+	{
+		return find(e, 0, _size);
+	}
+
+	// 唯一化，返回被删除元素的总数
+	int deduplicate(void)
+	{
+		int old_size = _size;
+		Rank i = 1;
+		while (i < _size)
+		{
+			(find(_elem[i], 0, i) < 0) ? i++ : remove(i);
+		}
+		return _size - old_size;
+	}
+
+	// 利用函数指针遍历操作
+	void traverse(void (*visit)(T&))
+	{
+		for (Rank i = 0; i < _size; i++)
+			visit(_elem[i]);
+	}
+
+	// 利用函数对象遍历操作
+	template <typename VST>
+	void traverse(VST& visit)
+	{
+		for (Rank i = 0; i < _size; i++)
+			visit(_elem[i]);
+	}
 protected:
 
 	// 复制数组区间A[lo, hi)
@@ -222,8 +277,12 @@ protected:
 	void expand(void)
 	{
 		_size++;
-		if (_size >= (int)(_expand_ratio * _capacity))
+		if (_size > _capacity)
 		{
+#ifdef DEBUG
+			printf("expand size: %d  old_capacity: %d  new_capacity: %d\n", _size, _capacity, (int)(1.0 / _expand_ratio) * _capacity);
+#endif
+
 			int invert_ratio = (int)(1.0 / _expand_ratio);
 			_capacity = invert_ratio * _capacity;
 			T* new_elem = new T[_capacity];
@@ -241,9 +300,12 @@ protected:
 	void shrink(void)
 	{
 		_size--;
-		if (_size <= (int)(_shrink_ratio * _capacity))
+		if (_size <= (int)(_shrink_ratio * _capacity) && _capacity >= DEFAULT_CAPACITY)
 		{
-			_capacity = (int)(_shrink_ratio * _capacity);
+#ifdef DEBUG
+			printf("shrink size: %d  old_capacity: %d  new_capacity: %d\n", _size, _capacity, max((int)(_shrink_ratio * _capacity), _size));
+#endif
+			_capacity = max((int)(_shrink_ratio * _capacity), _size);
 			T* new_elem = new T[_capacity];
 			for (Rank i = 0; i < _size; i++)
 			{
@@ -253,6 +315,16 @@ protected:
 			_elem = new_elem;
 		}
 	}
+
+	// 交换元素
+	void swap(Rank lhs, Rank rhs)
+	{
+		T tmp = _elem[lhs];
+		_elem[lhs] = _elem[rhs];
+		_elem[rhs] = tmp;
+	}
+
+	
 
 protected:
     // 容量
