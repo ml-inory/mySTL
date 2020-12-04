@@ -24,8 +24,15 @@ template <typename T>
 class Vector
 {
 public:
+	// 默认构造
+	Vector() :
+		Vector(DEFAULT_CAPACITY)
+	{
+
+	}
+
 	// 用容量初始化
-	Vector(int capacity = DEFAULT_CAPACITY) :
+	Vector(int capacity) :
 		_capacity(capacity),
 		_size(0),
 		_elem(nullptr),
@@ -75,7 +82,13 @@ public:
 	// 向量整体复制
 	Vector(Vector<T> const& V)
 	{
-		copyFrom(V._elem, 0, V._size);
+		_capacity = V._capacity;
+		_size = V._size;
+		_elem_size = V._elem_size;
+		_expand_ratio = V._expand_ratio;
+		_shrink_ratio = V._shrink_ratio;
+		_elem = new T[_capacity * sizeof(T)];
+		copyFrom(V._elem, 0, _size);
 	}
 
 	// 析构函数
@@ -255,12 +268,52 @@ public:
 		for (Rank i = 0; i < _size; i++)
 			visit(_elem[i]);
 	}
+
+	// 判断数组是否有序，返回0表示有序
+	int disordered(void) const
+	{
+		int ret = 0;
+		for (Rank i = 1; i < _size; i++)
+		{
+			if (_elem[i - 1] > _elem[i])
+				ret++;
+		}
+		return ret;
+	}
+
+	// 数组有序时的唯一化操作
+	int uniquify(void)
+	{
+		if (disordered() == 0)
+		{
+			int ret = 0;
+			for (Rank i = 0; i < _size - 1;)
+			{
+				if (_elem[i] == _elem[i + 1])
+				{
+					ret++;
+					remove(i + 1);
+				}
+				else
+					i++;
+			}
+		}
+		else
+		{
+			return deduplicate();
+		}
+	}
+
 protected:
 
 	// 复制数组区间A[lo, hi)
 	void copyFrom(T const* A, Rank lo, Rank hi)
 	{
 		if (lo > hi)	return;
+		while (_size < hi - lo)
+			expand();
+		while (_size > hi - lo)
+			shrink();
 
 		Rank min_index = max(lo, 0);
 		Rank max_index = min(hi, _size);
