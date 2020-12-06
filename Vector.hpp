@@ -204,7 +204,7 @@ public:
 		expand();
 
 		// 拷贝元素
-		for (Rank i = _size - index - 1; i >= index + 1; i--)
+		for (Rank i = _size - 1; i >= index + 1; i--)
 		{
 			// printf("copy %d - %d : %d\n", i - 1, i, _elem[i - 1]);
 			_elem[i] = _elem[i - 1];
@@ -286,17 +286,17 @@ public:
 	{
 		if (disordered() == 0)
 		{
-			int ret = 0;
-			for (Rank i = 0; i < _size - 1;)
+			Rank i = 0, j = 0;
+			int old_size = _size;
+			while (++j < _size)
 			{
-				if (_elem[i] == _elem[i + 1])
+				if (_elem[i] != _elem[j])
 				{
-					ret++;
-					remove(i + 1);
+					_elem[++i] = _elem[j];
 				}
-				else
-					i++;
 			}
+			_size = ++i;
+			return old_size - _size;
 		}
 		else
 		{
@@ -304,8 +304,58 @@ public:
 		}
 	}
 
-protected:
+	// 查找接口，针对有序向量
+	Rank search(T const& e, Rank lo, Rank hi) const
+	{
+		if (disordered() == 0)
+		{
+			// 随机选择二分查找还是斐波那契查找
+			// rand() % 2 ? return biSearch(e, lo, hi) : return fibSearch(e, lo, hi);
+			biSearch(e, lo, hi);
+		}
+		else
+		{
+			return find(e, lo, hi);
+		}
+	}
 
+	Rank search(T const& e) const
+	{
+		return search(e, 0, _size);
+	}
+
+	// 二分查找
+	Rank biSearch(T const& e, Rank lo, Rank hi) const
+	{
+		while (hi - lo > 1)
+		{
+			Rank mid = (lo + hi) >> 1;
+			(e < _elem[mid]) ? hi = mid : lo = mid;
+		}
+		return (e == _elem[lo]) ? lo : -1;
+	}
+
+	// 冒泡排序
+	bool bubbleSort(Rank lo, Rank hi)
+	{
+		for (Rank i = lo; i < hi - 1; i++)
+		{
+			bool sorted = true;
+			for (Rank j = i + 1; j < hi; j++)
+			{
+				if (_elem[i] > _elem[j])
+				{
+					sorted = false;
+					swap(i, j);
+				}
+			}
+			if (sorted)	break;
+			
+		}
+		return sorted;
+	}
+
+protected:
 	// 复制数组区间A[lo, hi)
 	void copyFrom(T const* A, Rank lo, Rank hi)
 	{

@@ -71,10 +71,22 @@ void test_uniquify()
 {
 	printf("uniquify:\n");
 	Vector<int> a = get_vector();
-	a.push_back(1);
-	a.push_back(2);
+	a.insert(1, 1);
+	a.insert(1, 1);
 	a.uniquify();
 	print_vector(a);
+}
+
+void test_search()
+{
+	printf("search:\n");
+	Vector<int> a = get_vector();
+	//a.insert(1, 1);
+	//a.insert(1, 1);
+	//print_vector(a);
+	Rank i = a.search(3);
+	print_vector(a);
+	printf("found 3 at %d\n", i);
 }
 
 int main()
@@ -88,6 +100,7 @@ int main()
 	test_shrink();
 	test_deduplicate();
 	test_uniquify();
+	test_search();
 
 	getchar();
     
