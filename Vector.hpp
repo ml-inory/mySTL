@@ -95,7 +95,7 @@ public:
 	~Vector()
 	{
 		if (nullptr != _elem)
-			delete _elem;
+			delete [] _elem;
 	}
 
 	// 只读访问接口
@@ -134,7 +134,7 @@ public:
 		_expand_ratio = other._expand_ratio;
 		_shrink_ratio = other._shrink_ratio;
 		if (nullptr != _elem)
-			delete _elem;
+			delete [] _elem;
 		_elem = new T[_capacity * sizeof(T)];
 		copyFrom(other._elem, 0, _size);
 		return *this;
@@ -227,7 +227,7 @@ public:
 	// 顺序查找，区间在[lo, hi)
 	Rank find(const T& e, Rank lo, Rank hi) const
 	{
-		assert(lo >= 0 && hi < _size);
+		assert(lo >= 0 && hi <= _size);
 		for (Rank i = hi - 1; i >= lo; i--)
 		{
 			if (_elem[i] == e)
@@ -336,7 +336,7 @@ public:
 	}
 
 	// 冒泡排序
-	bool bubbleSort(Rank lo, Rank hi)
+	void bubbleSort(Rank lo, Rank hi)
 	{
 		for (Rank i = lo; i < hi - 1; i++)
 		{
@@ -352,7 +352,47 @@ public:
 			if (sorted)	break;
 			
 		}
-		return sorted;
+	}
+
+	void bubbleSort(void)
+	{
+		bubbleSort(0, _size);
+	}
+
+	// 归并排序
+	void mergeSort(Rank lo, Rank hi)
+	{
+		if (hi - lo < 2)	return;
+		Rank mid = (hi + lo) / 2;
+		mergeSort(lo, mid);
+		mergeSort(mid, hi);
+		merge(lo, mid, hi);
+	}
+
+	void mergeSort(void)
+	{
+		mergeSort(0, _size);
+	}
+
+	void merge(Rank lo, Rank mid, Rank hi)
+	{
+		int lb = mid - lo;
+		int lc = hi - mid;
+
+		T* A = _elem + lo;
+		T* B = new T[lb];
+		T* C = _elem + mid;
+
+		for (Rank i = 0; i < lb; i++)
+			B[i] = A[i];
+
+		Rank i = 0, j = 0, k = 0;
+		for (; i < lb || j < lc;)
+		{
+			if ( i < lb && (j == lc || B[i] <= C[j]) )	A[k++] = B[i++];
+			if ( j < lc && (i == lb || C[j] <  B[i]) )	A[k++] = C[j++];
+		}		
+		delete []B;
 	}
 
 protected:
@@ -394,7 +434,7 @@ protected:
 			{
 				new_elem[i] = _elem[i];
 			}
-			delete _elem;
+			delete [] _elem;
 			_elem = new_elem;
 		}
 	}
@@ -414,7 +454,7 @@ protected:
 			{
 				new_elem[i] = _elem[i];
 			}
-			delete _elem;
+			delete [] _elem;
 			_elem = new_elem;
 		}
 	}

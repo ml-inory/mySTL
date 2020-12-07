@@ -19,7 +19,7 @@ Vector<int> get_vector()
 	Vector<int> ret(size, 0);
 	for (Rank i = 0; i < size; i++)
 	{
-		ret[i] = i;
+		ret[i] = rand() % (size * 5);
 	}
 	return ret;
 }
@@ -44,8 +44,8 @@ void test_deduplicate()
 {
 	printf("deduplicate:\n");
 	Vector<int> a = get_vector();
-	a.push_back(1);
-	a.push_back(2);
+	a.insert(1, 1);
+	a.insert(1, 1);
 	a.deduplicate();
 	print_vector(a);
 }
@@ -73,6 +73,7 @@ void test_uniquify()
 	Vector<int> a = get_vector();
 	a.insert(1, 1);
 	a.insert(1, 1);
+	a.bubbleSort();
 	a.uniquify();
 	print_vector(a);
 }
@@ -81,12 +82,21 @@ void test_search()
 {
 	printf("search:\n");
 	Vector<int> a = get_vector();
-	//a.insert(1, 1);
-	//a.insert(1, 1);
-	//print_vector(a);
+	a.push_back(3);
 	Rank i = a.search(3);
 	print_vector(a);
 	printf("found 3 at %d\n", i);
+}
+
+void test_mergeSort()
+{
+	printf("mergeSort:\n");
+	Vector<int> a = get_vector();
+	printf("before:\n");
+	print_vector(a);
+	printf("after:\n");
+	a.mergeSort();
+	print_vector(a);
 }
 
 int main()
@@ -101,6 +111,7 @@ int main()
 	test_deduplicate();
 	test_uniquify();
 	test_search();
+	test_mergeSort();
 
 	getchar();
     
